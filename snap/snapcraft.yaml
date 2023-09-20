@@ -1,0 +1,55 @@
+name: balena-etcher
+base: core22
+version: '1.18.11'
+summary: Flash OS images to SD cards & USB drives, safely and easily. 
+description: |
+  Etcher is a powerful OS image flasher built with web technologies to ensure flashing an SDCard or USB drive is a pleasant and safe experience. It protects you from accidentally writing to your hard-drives, ensures every byte of data was written correctly, and much more. It can also directly flash Raspberry Pi devices that support USB device boot mode.
+grade: stable
+confinement: strict
+compression: lzo
+architectures:
+  - build-on: amd64
+
+layout:
+  /usr/bin/pkexec:
+    bind-file: $SNAP/usr/bin/pkexec
+
+apps:
+  balena-etcher:
+    command: launcher
+    desktop: usr/share/applications/balena-etcher.desktop
+    extensions: [ gnome ]
+    plugs: 
+      - screen-inhibit-control
+      - shmem
+
+plugs:
+  shmem:
+    interface: shared-memory
+    private: true
+
+parts:
+  balena:
+    plugin: dump
+    source: https://github.com/balena-io/etcher/releases/download/v${SNAPCRAFT_PROJECT_VERSION}/balena-etcher_${SNAPCRAFT_PROJECT_VERSION}_amd64.deb
+    source-type: deb
+    stage-packages:
+      - pkexec
+    override-build: |
+      craftctl default
+      sed -i 's|Icon=balena-etcher|Icon=/usr/share/icons/hicolor/512x512/apps/balena-etcher.png|' ${CRAFT_PART_INSTALL}/usr/share/applications/balena-etcher.desktop
+  launcher:
+    plugin: dump
+    source: launcher
+    override-build: |
+      cp launcher $CRAFT_PART_INSTALL/
+
+  cleanup:
+    after: [balena]
+    plugin: nil
+    build-snaps: [core22, gtk-common-themes, gnome-42-2204]
+    override-prime: |
+      set -eux
+      for snap in "core22" "gtk-common-themes" "gnome-42-2204"; do
+        cd "/snap/$snap/current" && find . -type f,l -name *.so.* -exec rm -f "$CRAFT_PRIME/{}" \;
+      done
