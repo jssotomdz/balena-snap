@@ -35,6 +35,13 @@ parts:
     source-type: deb
     stage-packages:
       - pkexec
+      - libappindicator1
+      - libgconf-2-4
+      - libindicator7
+      - libnotify4
+      - libxss1
+      - libxtst6
+      - libunity9
     override-build: |
       craftctl default
       sed -i 's|Icon=balena-etcher|Icon=/usr/share/icons/hicolor/512x512/apps/balena-etcher.png|' ${CRAFT_PART_INSTALL}/usr/share/applications/balena-etcher.desktop
